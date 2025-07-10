@@ -1,4 +1,4 @@
-# WafGuard
+# The WafGuard
 
 A professional tool for testing Web Application Firewalls (WAFs) by sending HTTP requests and validating responses against expected outcomes.
 
