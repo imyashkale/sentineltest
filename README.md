@@ -1,109 +1,78 @@
 # WafGuard
 
-A professional Go-based tool for testing Web Application Firewalls (WAFs) using Kubernetes-like YAML configuration files.
+A professional tool for testing Web Application Firewalls (WAFs) by sending HTTP requests and validating responses against expected outcomes.
 
-## Features
+## What It Does
 
-- 🚀 **Kubernetes-like YAML Configuration**: Define HTTP requests and expected responses in familiar YAML format
-- 📊 **Structured Logging**: Comprehensive logging with configurable levels and formats
-- 🔄 **Concurrent Testing**: Run multiple tests simultaneously for faster execution
-- 📋 **Flexible Response Validation**: Validate status codes, headers, and body content
-- 📈 **Multiple Output Formats**: JSON and text output formats with optional file export
-- 🎯 **Attack Vector Testing**: Pre-built test cases for common web vulnerabilities
+WafGuard executes HTTP tests against WAF-protected endpoints using YAML configuration files. It validates responses (status codes, headers, body content) and generates detailed reports showing which tests passed or failed.
+
+**Use Cases:**
+- Test WAF rule effectiveness
+- Validate security configurations
+- Automated security testing in CI/CD
+- Penetration testing workflows
 
 ## Installation
 
-### Option 1: Install Globally (Recommended)
-
-Install WafGuard globally so you can use `wafguard` from anywhere:
-
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd wafguard
-
-# Install globally (to /usr/local/bin)
+# Install globally (recommended)
 make install
 
-# Now you can use wafguard from anywhere!
+# Now use from anywhere
 wafguard --help
 ```
 
-### Option 2: Local Go Installation
+## Quick Start
 
-Install to your Go bin directory (no sudo required):
+1. **Create a test configuration** (`test.yaml`):
 
-```bash
-# Install locally to $GOPATH/bin or ~/go/bin
-make install-local
-
-# Make sure your Go bin is in PATH
-export PATH=$PATH:$GOPATH/bin
-# or
-export PATH=$PATH:$HOME/go/bin
-
-# Now you can use wafguard globally
-wafguard --help
+```yaml
+apiVersion: waf-test/v1
+kind: WafTest
+metadata:
+  name: sql-injection-test
+spec:
+  target:
+    baseUrl: https://your-app.com
+    timeout: 30s
+  tests:
+    - name: basic-sql-injection
+      request:
+        method: POST
+        path: /login
+        headers:
+          Content-Type: application/json
+        body: '{"username": "admin'' OR 1=1--", "password": "test"}'
+      expected:
+        status: [403, 400]  # WAF should block this
+        body:
+          contains: ["blocked", "rejected"]
 ```
 
-### Option 3: Build Only
-
-Build the binary without installing:
+2. **Run the test**:
 
 ```bash
-# Build binary to ./bin/wafguard
-make build
-
-# Use the local binary
-./bin/wafguard --help
+wafguard run test.yaml
 ```
 
-### Uninstall
+3. **View results**:
 
-To remove WafGuard from your system:
+```
+Test: basic-sql-injection
+Status: PASS
+Duration: 245ms
+Request: POST /login
+Response Status: 403
+---
 
-```bash
-make uninstall
+Suite: sql-injection-test
+Total Tests: 1
+Passed: 1
+Failed: 0
+Success Rate: 100.00%
 ```
 
-## Usage
-
-### Run Tests
-
-```bash
-# Run a single test file
-wafguard run examples/test-configs/sql-injection-test.yaml
-
-# Run all tests in a directory
-wafguard run examples/test-configs/
-
-# Run with custom options
-wafguard run examples/test-configs/ \
-  --concurrent 5 \
-  --format json \
-  --output results.json \
-  --log-level debug
-```
-
-### Validate Tests
-
-```bash
-# Validate test file syntax
-wafguard validate examples/test-configs/sql-injection-test.yaml
-
-# Validate all files in directory
-wafguard validate examples/test-configs/
-```
-
-### Command Line Options
-
-- `--concurrent, -c`: Number of concurrent test executions (default: 1)
-- `--format, -F`: Output format (json, text) (default: text)
-- `--output, -o`: Output file for test results
-- `--log-level, -l`: Log level (debug, info, warn, error) (default: info)
-- `--log-format, -f`: Log format (json, text) (default: text)
-
-## YAML Configuration
+## Configuration Format
 
 ### Basic Structure
 
@@ -111,133 +80,131 @@ wafguard validate examples/test-configs/
 apiVersion: waf-test/v1
 kind: WafTest
 metadata:
-  name: my-test
-  description: Test description
+  name: test-name
+  description: "Optional description"
 spec:
   target:
-    baseUrl: https://example.com
-    timeout: 30s
+    baseUrl: https://target.com    # Required
+    timeout: 30s                   # Optional, default 30s
   tests:
-    - name: test-case-1
+    - name: test-case-name
       request:
-        method: POST
+        method: GET|POST|PUT|DELETE
         path: /api/endpoint
-        headers:
-          Content-Type: application/json
-        body: '{"key": "value"}'
+        headers:                   # Optional
+          Header-Name: value
+        body: "request body"       # Optional
       expected:
-        status: [200, 201]
-        headers:
+        status: [200, 201]         # List of acceptable status codes
+        headers:                   # Optional header validation
           Content-Type: application/json
-        body:
+        body:                      # Optional body validation
           contains: ["success"]
           not_contains: ["error"]
+          exact: "exact match"
+          regex: "^pattern.*$"
 ```
 
-### Request Configuration
+### Request Options
 
-```yaml
-request:
-  method: GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS
-  path: /api/path
-  headers:
-    Header-Name: header-value
-  body: "request body content"
-```
+- **method**: HTTP method (GET, POST, PUT, DELETE, etc.)
+- **path**: URL path (relative to baseUrl)
+- **headers**: Key-value pairs for HTTP headers
+- **body**: Request body content (for POST/PUT requests)
 
 ### Response Validation
 
-```yaml
-expected:
-  status: [200, 201, 403]  # List of acceptable status codes
-  headers:
-    Expected-Header: expected-value
-  body:
-    contains: ["text1", "text2"]      # Body must contain these strings
-    not_contains: ["error", "fail"]   # Body must not contain these strings
-    exact: "exact match string"       # Body must exactly match
-    regex: "^pattern.*$"              # Body must match regex pattern
+- **status**: Array of acceptable HTTP status codes
+- **headers**: Expected response headers (partial matching)
+- **body.contains**: Strings that must be present in response body
+- **body.not_contains**: Strings that must NOT be present
+- **body.exact**: Exact body content match
+- **body.regex**: Regular expression pattern match
+
+## Commands
+
+```bash
+# Run tests
+wafguard run test.yaml                    # Single file
+wafguard run tests/                       # Directory
+wafguard run tests/ --concurrent 5        # Parallel execution
+
+# Validate configuration
+wafguard validate test.yaml               # Check syntax
+
+# Output options
+wafguard run test.yaml --format json      # JSON output
+wafguard run test.yaml --output results.json  # Save to file
 ```
 
-## Example Test Cases
+## Output Formats
 
-The `examples/test-configs/` directory contains pre-built test cases for common web vulnerabilities:
+### Text Output (Default)
+```
+Test: sql-injection-test
+Status: FAIL
+Duration: 156ms
+Request: POST /login
+Response Status: 200
+Validation Errors:
+  - Expected status codes [403, 400], got 200
+  - Body should contain 'blocked' but it was not found
+```
+
+### JSON Output
+```json
+{
+  "test_name": "sql-injection-test",
+  "status": "FAIL", 
+  "duration": 156000000,
+  "request": {
+    "Method": "POST",
+    "Path": "/login",
+    "Body": "{\"username\": \"admin' OR 1=1--\"}"
+  },
+  "response": {
+    "StatusCode": 200,
+    "Body": "{\"message\": \"Login successful\"}"
+  },
+  "validation_result": {
+    "Passed": false,
+    "Errors": [
+      "Expected status codes [403, 400], got 200",
+      "Body should contain 'blocked' but it was not found"
+    ]
+  }
+}
+```
+
+## Examples
+
+The `examples/test-configs/` directory contains ready-to-use test cases:
 
 - **SQL Injection**: `sql-injection-test.yaml`
-- **Cross-Site Scripting (XSS)**: `xss-test.yaml`
+- **Cross-Site Scripting**: `xss-test.yaml` 
 - **Directory Traversal**: `directory-traversal-test.yaml`
 
-## Project Structure
+```bash
+# Test all examples
+wafguard run examples/test-configs/
 
-```
-wafguard/
-├── cmd/wafguard/             # CLI application
-├── internal/                 # Internal packages (core logic)
-│   ├── core/config/          # Configuration types
-│   ├── parser/               # YAML parser
-│   ├── executor/             # HTTP request executor
-│   ├── validator/            # Response validator
-│   ├── reporter/             # Test result reporting
-│   └── logger/               # Structured logging
-├── pkg/                      # Public API
-│   ├── client/               # Public client interface
-│   └── types/                # Public type definitions
-├── examples/test-configs/    # Example test cases
-├── Makefile                  # Build automation
-└── README.md
+# Test specific attack vector
+wafguard run examples/test-configs/sql-injection-test.yaml
 ```
 
 ## Development
 
-### Dependencies
-
-- Go 1.21+
-- github.com/spf13/cobra - CLI framework
-- github.com/sirupsen/logrus - Structured logging
-- gopkg.in/yaml.v3 - YAML parsing
-- github.com/go-playground/validator/v10 - Struct validation
-
-### Building
-
 ```bash
-# Using Make (recommended)
+# Build
 make build
 
-# Or manually
-go mod tidy
-go build -o wafguard cmd/wafguard/main.go
-
-# For development
-make dev-deps  # Install development dependencies
-make test      # Run tests
-make lint      # Run linter
-make format    # Format code
-```
-
-### Testing
-
-```bash
-# Run unit tests
+# Run tests
 make test
 
-# Run tests with coverage
-make test-coverage
-
-# Validate example configurations
-wafguard validate examples/test-configs/
-
-# Run example tests (requires internet connection)
-wafguard run examples/test-configs/sql-injection-test.yaml
+# Install locally
+make install-local
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License
