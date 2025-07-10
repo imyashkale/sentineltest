@@ -1,4 +1,4 @@
-module waf-tester
+module wafguard
 
 go 1.21
 

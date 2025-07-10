@@ -1,0 +1,1306 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>waf-tester: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">waf-tester/cmd/waf-tester/main.go (5.0%)</option>
+				
+				<option value="file1">waf-tester/internal/executor/http.go (90.3%)</option>
+				
+				<option value="file2">waf-tester/internal/logger/logger.go (95.2%)</option>
+				
+				<option value="file3">waf-tester/internal/parser/yaml.go (100.0%)</option>
+				
+				<option value="file4">waf-tester/internal/reporter/results.go (90.9%)</option>
+				
+				<option value="file5">waf-tester/internal/validator/response.go (100.0%)</option>
+				
+				<option value="file6">waf-tester/pkg/client/client.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "context"
+        "fmt"
+        "os"
+        "sync"
+        "time"
+        "waf-tester/internal/logger"
+        "waf-tester/internal/core/config"
+        "waf-tester/internal/executor"
+        "waf-tester/internal/parser"
+        "waf-tester/internal/reporter"
+        "waf-tester/internal/validator"
+
+        "github.com/sirupsen/logrus"
+        "github.com/spf13/cobra"
+)
+
+var (
+        logLevel   string
+        logFormat  string
+        outputFile string
+        format     string
+        concurrent int
+)
+
+func main() <span class="cov0" title="0">{
+        var rootCmd = &amp;cobra.Command{
+                Use:   "waf-tester",
+                Short: "WAF Testing Tool",
+                Long:  "A tool for testing Web Application Firewalls using YAML configuration files",
+        }
+
+        var runCmd = &amp;cobra.Command{
+                Use:   "run [file or directory]",
+                Short: "Run WAF tests",
+                Long:  "Run WAF tests from a YAML file or directory containing YAML files",
+                Args:  cobra.ExactArgs(1),
+                RunE:  runTests,
+        }
+
+        var validateCmd = &amp;cobra.Command{
+                Use:   "validate [file or directory]",
+                Short: "Validate YAML test files",
+                Long:  "Validate YAML test files without executing them",
+                Args:  cobra.ExactArgs(1),
+                RunE:  validateTests,
+        }
+
+        runCmd.Flags().StringVarP(&amp;logLevel, "log-level", "l", "info", "Log level (debug, info, warn, error)")
+        runCmd.Flags().StringVarP(&amp;logFormat, "log-format", "f", "text", "Log format (json, text)")
+        runCmd.Flags().StringVarP(&amp;outputFile, "output", "o", "", "Output file for test results")
+        runCmd.Flags().StringVarP(&amp;format, "format", "F", "text", "Output format (json, text)")
+        runCmd.Flags().IntVarP(&amp;concurrent, "concurrent", "c", 1, "Number of concurrent test executions")
+
+        validateCmd.Flags().StringVarP(&amp;logLevel, "log-level", "l", "info", "Log level (debug, info, warn, error)")
+        validateCmd.Flags().StringVarP(&amp;logFormat, "log-format", "f", "text", "Log format (json, text)")
+
+        rootCmd.AddCommand(runCmd)
+        rootCmd.AddCommand(validateCmd)
+
+        if err := rootCmd.Execute(); err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+}
+
+func runTests(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        setupLogger()
+        
+        path := args[0]
+        logger.WithFields(logrus.Fields{
+                "path":       path,
+                "concurrent": concurrent,
+                "format":     format,
+        }).Info("Starting WAF tests")
+
+        p := parser.NewParser()
+        var tests []*config.WafTest
+        var err error
+
+        if isDirectory(path) </span><span class="cov0" title="0">{
+                tests, err = p.ParseDirectory(path)
+        }</span> else<span class="cov0" title="0"> {
+                test, parseErr := p.ParseFile(path)
+                if parseErr != nil </span><span class="cov0" title="0">{
+                        return parseErr
+                }</span>
+                <span class="cov0" title="0">tests = []*config.WafTest{test}</span>
+        }
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to parse tests: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(tests) == 0 </span><span class="cov0" title="0">{
+                logger.Warn("No tests found")
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">return executeTests(tests)</span>
+}
+
+func validateTests(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        setupLogger()
+        
+        path := args[0]
+        logger.WithFields(logrus.Fields{
+                "path": path,
+        }).Info("Validating WAF test files")
+
+        p := parser.NewParser()
+        var tests []*config.WafTest
+        var err error
+
+        if isDirectory(path) </span><span class="cov0" title="0">{
+                tests, err = p.ParseDirectory(path)
+        }</span> else<span class="cov0" title="0"> {
+                test, parseErr := p.ParseFile(path)
+                if parseErr != nil </span><span class="cov0" title="0">{
+                        return parseErr
+                }</span>
+                <span class="cov0" title="0">tests = []*config.WafTest{test}</span>
+        }
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("validation failed: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">logger.WithFields(logrus.Fields{
+                "test_count": len(tests),
+        }).Info("All test files are valid")
+
+        return nil</span>
+}
+
+func executeTests(tests []*config.WafTest) error <span class="cov0" title="0">{
+        rep := reporter.NewReporter(format, outputFile)
+        start := time.Now()
+        
+        var allReports []reporter.TestReport
+        var mu sync.Mutex
+
+        for _, test := range tests </span><span class="cov0" title="0">{
+                logger.WithFields(logrus.Fields{
+                        "test_suite": test.Metadata.Name,
+                        "test_count": len(test.Spec.Tests),
+                }).Info("Executing test suite")
+
+                httpExecutor := executor.NewHTTPExecutor(test.Spec.Target.Timeout)
+                responseValidator := validator.NewResponseValidator()
+
+                if concurrent &lt;= 1 </span><span class="cov0" title="0">{
+                        reports := executeTestsSequentially(test, httpExecutor, responseValidator, rep)
+                        mu.Lock()
+                        allReports = append(allReports, reports...)
+                        mu.Unlock()
+                }</span> else<span class="cov0" title="0"> {
+                        reports := executeTestsConcurrently(test, httpExecutor, responseValidator, rep, concurrent)
+                        mu.Lock()
+                        allReports = append(allReports, reports...)
+                        mu.Unlock()
+                }</span>
+        }
+
+        <span class="cov0" title="0">duration := time.Since(start)
+        suiteReport := rep.GenerateSuiteReport("All Tests", allReports, duration)
+        
+        rep.PrintSuiteReport(suiteReport)
+        
+        if err := rep.SaveSuiteReport(suiteReport); err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to save report:", err)
+        }</span>
+
+        <span class="cov0" title="0">if suiteReport.FailedTests &gt; 0 </span><span class="cov0" title="0">{
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func executeTestsSequentially(wafTest *config.WafTest, httpExecutor *executor.HTTPExecutor, responseValidator *validator.ResponseValidator, rep *reporter.Reporter) []reporter.TestReport <span class="cov0" title="0">{
+        var reports []reporter.TestReport
+
+        for _, test := range wafTest.Spec.Tests </span><span class="cov0" title="0">{
+                start := time.Now()
+                
+                response, err := httpExecutor.ExecuteTest(&amp;test, wafTest.Spec.Target.BaseURL)
+                if err != nil </span><span class="cov0" title="0">{
+                        logger.WithFields(logrus.Fields{
+                                "test_name": test.Name,
+                                "error":     err,
+                        }).Error("Failed to execute test")
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">validation := responseValidator.Validate(response, &amp;test.Expected, test.Name)
+                duration := time.Since(start)
+
+                report := rep.GenerateTestReport(test.Name, &amp;test.Request, response, validation, duration)
+                reports = append(reports, *report)
+                
+                rep.PrintTestReport(report)</span>
+        }
+
+        <span class="cov0" title="0">return reports</span>
+}
+
+func executeTestsConcurrently(wafTest *config.WafTest, httpExecutor *executor.HTTPExecutor, responseValidator *validator.ResponseValidator, rep *reporter.Reporter, maxConcurrent int) []reporter.TestReport <span class="cov0" title="0">{
+        var reports []reporter.TestReport
+        var mu sync.Mutex
+        var wg sync.WaitGroup
+
+        semaphore := make(chan struct{}, maxConcurrent)
+        ctx := context.Background()
+
+        for _, test := range wafTest.Spec.Tests </span><span class="cov0" title="0">{
+                wg.Add(1)
+                go func(t config.Test) </span><span class="cov0" title="0">{
+                        defer wg.Done()
+                        
+                        semaphore &lt;- struct{}{}
+                        defer func() </span><span class="cov0" title="0">{ &lt;-semaphore }</span>()
+
+                        <span class="cov0" title="0">start := time.Now()
+                        
+                        response, err := httpExecutor.ExecuteTestWithContext(ctx, &amp;t, wafTest.Spec.Target.BaseURL)
+                        if err != nil </span><span class="cov0" title="0">{
+                                logger.WithFields(logrus.Fields{
+                                        "test_name": t.Name,
+                                        "error":     err,
+                                }).Error("Failed to execute test")
+                                return
+                        }</span>
+
+                        <span class="cov0" title="0">validation := responseValidator.Validate(response, &amp;t.Expected, t.Name)
+                        duration := time.Since(start)
+
+                        report := rep.GenerateTestReport(t.Name, &amp;t.Request, response, validation, duration)
+                        
+                        mu.Lock()
+                        reports = append(reports, *report)
+                        mu.Unlock()
+                        
+                        rep.PrintTestReport(report)</span>
+                }(test)
+        }
+
+        <span class="cov0" title="0">wg.Wait()
+        return reports</span>
+}
+
+func setupLogger() <span class="cov8" title="1">{
+        logger.SetLevel(logLevel)
+        logger.SetFormatter(logFormat)
+}</span>
+
+func isDirectory(path string) bool <span class="cov8" title="1">{
+        info, err := os.Stat(path)
+        if err != nil </span><span class="cov8" title="1">{
+                return false
+        }</span>
+        <span class="cov8" title="1">return info.IsDir()</span>
+}</pre>
+		
+		<pre class="file" id="file1" style="display: none">package executor
+
+import (
+        "bytes"
+        "context"
+        "fmt"
+        "io"
+        "net/http"
+        "net/url"
+        "strings"
+        "time"
+        "waf-tester/internal/logger"
+        "waf-tester/internal/core/config"
+
+        "github.com/sirupsen/logrus"
+)
+
+type HTTPExecutor struct {
+        client *http.Client
+}
+
+type Response struct {
+        StatusCode int
+        Headers    map[string]string
+        Body       string
+        Duration   time.Duration
+}
+
+func NewHTTPExecutor(timeout time.Duration) *HTTPExecutor <span class="cov8" title="1">{
+        if timeout == 0 </span><span class="cov8" title="1">{
+                timeout = 30 * time.Second
+        }</span>
+
+        <span class="cov8" title="1">return &amp;HTTPExecutor{
+                client: &amp;http.Client{
+                        Timeout: timeout,
+                },
+        }</span>
+}
+
+func (e *HTTPExecutor) ExecuteTest(test *config.Test, baseURL string) (*Response, error) <span class="cov8" title="1">{
+        start := time.Now()
+        
+        logger.WithFields(logrus.Fields{
+                "test_name": test.Name,
+                "method":    test.Request.Method,
+                "path":      test.Request.Path,
+        }).Info("Executing test")
+
+        fullURL, err := e.buildURL(baseURL, test.Request.Path)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to build URL: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">req, err := e.createRequest(test.Request, fullURL)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create request: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">resp, err := e.client.Do(req)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to execute request: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer resp.Body.Close()
+
+        body, err := io.ReadAll(resp.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to read response body: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">duration := time.Since(start)
+
+        response := &amp;Response{
+                StatusCode: resp.StatusCode,
+                Headers:    e.extractHeaders(resp.Header),
+                Body:       string(body),
+                Duration:   duration,
+        }
+
+        logger.WithFields(logrus.Fields{
+                "test_name":   test.Name,
+                "status_code": response.StatusCode,
+                "duration":    duration.String(),
+        }).Info("Test executed")
+
+        return response, nil</span>
+}
+
+func (e *HTTPExecutor) ExecuteTestWithContext(ctx context.Context, test *config.Test, baseURL string) (*Response, error) <span class="cov8" title="1">{
+        start := time.Now()
+        
+        logger.WithFields(logrus.Fields{
+                "test_name": test.Name,
+                "method":    test.Request.Method,
+                "path":      test.Request.Path,
+        }).Info("Executing test with context")
+
+        fullURL, err := e.buildURL(baseURL, test.Request.Path)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to build URL: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">req, err := e.createRequest(test.Request, fullURL)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create request: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">req = req.WithContext(ctx)
+
+        resp, err := e.client.Do(req)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to execute request: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer resp.Body.Close()
+
+        body, err := io.ReadAll(resp.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to read response body: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">duration := time.Since(start)
+
+        response := &amp;Response{
+                StatusCode: resp.StatusCode,
+                Headers:    e.extractHeaders(resp.Header),
+                Body:       string(body),
+                Duration:   duration,
+        }
+
+        logger.WithFields(logrus.Fields{
+                "test_name":   test.Name,
+                "status_code": response.StatusCode,
+                "duration":    duration.String(),
+        }).Info("Test executed with context")
+
+        return response, nil</span>
+}
+
+func (e *HTTPExecutor) buildURL(baseURL, path string) (string, error) <span class="cov8" title="1">{
+        base, err := url.Parse(baseURL)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("invalid base URL: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">rel, err := url.Parse(path)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("invalid path: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return base.ResolveReference(rel).String(), nil</span>
+}
+
+func (e *HTTPExecutor) createRequest(reqConfig config.Request, url string) (*http.Request, error) <span class="cov8" title="1">{
+        var body io.Reader
+        if reqConfig.Body != "" </span><span class="cov8" title="1">{
+                body = bytes.NewBufferString(reqConfig.Body)
+        }</span>
+
+        <span class="cov8" title="1">req, err := http.NewRequest(reqConfig.Method, url, body)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to create HTTP request: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">for key, value := range reqConfig.Headers </span><span class="cov8" title="1">{
+                req.Header.Set(key, value)
+        }</span>
+
+        <span class="cov8" title="1">return req, nil</span>
+}
+
+func (e *HTTPExecutor) extractHeaders(headers http.Header) map[string]string <span class="cov8" title="1">{
+        result := make(map[string]string)
+        for key, values := range headers </span><span class="cov8" title="1">{
+                result[key] = strings.Join(values, ", ")
+        }</span>
+        <span class="cov8" title="1">return result</span>
+}</pre>
+		
+		<pre class="file" id="file2" style="display: none">package logger
+
+import (
+        "os"
+
+        "github.com/sirupsen/logrus"
+)
+
+var log *logrus.Logger
+
+func init() <span class="cov8" title="1">{
+        log = logrus.New()
+        log.SetOutput(os.Stdout)
+        log.SetFormatter(&amp;logrus.JSONFormatter{})
+        log.SetLevel(logrus.InfoLevel)
+}</span>
+
+func SetLevel(level string) <span class="cov8" title="1">{
+        switch level </span>{
+        case "debug":<span class="cov8" title="1">
+                log.SetLevel(logrus.DebugLevel)</span>
+        case "info":<span class="cov8" title="1">
+                log.SetLevel(logrus.InfoLevel)</span>
+        case "warn":<span class="cov8" title="1">
+                log.SetLevel(logrus.WarnLevel)</span>
+        case "error":<span class="cov8" title="1">
+                log.SetLevel(logrus.ErrorLevel)</span>
+        default:<span class="cov8" title="1">
+                log.SetLevel(logrus.InfoLevel)</span>
+        }
+}
+
+func SetFormatter(format string) <span class="cov8" title="1">{
+        switch format </span>{
+        case "json":<span class="cov8" title="1">
+                log.SetFormatter(&amp;logrus.JSONFormatter{})</span>
+        case "text":<span class="cov8" title="1">
+                log.SetFormatter(&amp;logrus.TextFormatter{
+                        FullTimestamp: true,
+                })</span>
+        default:<span class="cov8" title="1">
+                log.SetFormatter(&amp;logrus.JSONFormatter{})</span>
+        }
+}
+
+func GetLogger() *logrus.Logger <span class="cov8" title="1">{
+        return log
+}</span>
+
+func Debug(args ...interface{}) <span class="cov8" title="1">{
+        log.Debug(args...)
+}</span>
+
+func Info(args ...interface{}) <span class="cov8" title="1">{
+        log.Info(args...)
+}</span>
+
+func Warn(args ...interface{}) <span class="cov8" title="1">{
+        log.Warn(args...)
+}</span>
+
+func Error(args ...interface{}) <span class="cov8" title="1">{
+        log.Error(args...)
+}</span>
+
+func Fatal(args ...interface{}) <span class="cov0" title="0">{
+        log.Fatal(args...)
+}</span>
+
+func WithFields(fields logrus.Fields) *logrus.Entry <span class="cov8" title="1">{
+        return log.WithFields(fields)
+}</pre>
+		
+		<pre class="file" id="file3" style="display: none">package parser
+
+import (
+        "fmt"
+        "os"
+        "path/filepath"
+        "waf-tester/internal/core/config"
+
+        "github.com/go-playground/validator/v10"
+        "gopkg.in/yaml.v3"
+)
+
+type Parser struct {
+        validator *validator.Validate
+}
+
+func NewParser() *Parser <span class="cov8" title="1">{
+        return &amp;Parser{
+                validator: validator.New(),
+        }
+}</span>
+
+func (p *Parser) ParseFile(filename string) (*config.WafTest, error) <span class="cov8" title="1">{
+        data, err := os.ReadFile(filename)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to read file %s: %w", filename, err)
+        }</span>
+
+        <span class="cov8" title="1">return p.ParseYAML(data)</span>
+}
+
+func (p *Parser) ParseYAML(data []byte) (*config.WafTest, error) <span class="cov8" title="1">{
+        var wafTest config.WafTest
+        
+        if err := yaml.Unmarshal(data, &amp;wafTest); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse YAML: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if err := p.validator.Struct(&amp;wafTest); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("validation failed: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;wafTest, nil</span>
+}
+
+func (p *Parser) ParseDirectory(dir string) ([]*config.WafTest, error) <span class="cov8" title="1">{
+        var tests []*config.WafTest
+        
+        err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error </span><span class="cov8" title="1">{
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+                
+                <span class="cov8" title="1">if !info.IsDir() &amp;&amp; (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml") </span><span class="cov8" title="1">{
+                        test, parseErr := p.ParseFile(path)
+                        if parseErr != nil </span><span class="cov8" title="1">{
+                                return fmt.Errorf("failed to parse %s: %w", path, parseErr)
+                        }</span>
+                        <span class="cov8" title="1">tests = append(tests, test)</span>
+                }
+                
+                <span class="cov8" title="1">return nil</span>
+        })
+        
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse directory %s: %w", dir, err)
+        }</span>
+        
+        <span class="cov8" title="1">return tests, nil</span>
+}</pre>
+		
+		<pre class="file" id="file4" style="display: none">package reporter
+
+import (
+        "encoding/json"
+        "fmt"
+        "os"
+        "time"
+        "waf-tester/internal/logger"
+        "waf-tester/internal/core/config"
+        "waf-tester/internal/executor"
+        "waf-tester/internal/validator"
+
+        "github.com/sirupsen/logrus"
+)
+
+type TestReport struct {
+        TestName         string                   `json:"test_name"`
+        Status           string                   `json:"status"`
+        Duration         time.Duration            `json:"duration"`
+        Request          *config.Request          `json:"request"`
+        Response         *executor.Response       `json:"response"`
+        ValidationResult *validator.ValidationResult `json:"validation_result"`
+        Timestamp        time.Time                `json:"timestamp"`
+}
+
+type SuiteReport struct {
+        SuiteName    string        `json:"suite_name"`
+        TotalTests   int           `json:"total_tests"`
+        PassedTests  int           `json:"passed_tests"`
+        FailedTests  int           `json:"failed_tests"`
+        Duration     time.Duration `json:"duration"`
+        Tests        []TestReport  `json:"tests"`
+        Timestamp    time.Time     `json:"timestamp"`
+}
+
+type Reporter struct {
+        format string
+        output string
+}
+
+func NewReporter(format, output string) *Reporter <span class="cov8" title="1">{
+        return &amp;Reporter{
+                format: format,
+                output: output,
+        }
+}</span>
+
+func (r *Reporter) GenerateTestReport(testName string, request *config.Request, response *executor.Response, validation *validator.ValidationResult, duration time.Duration) *TestReport <span class="cov8" title="1">{
+        status := "PASS"
+        if !validation.Passed </span><span class="cov8" title="1">{
+                status = "FAIL"
+        }</span>
+
+        <span class="cov8" title="1">return &amp;TestReport{
+                TestName:         testName,
+                Status:           status,
+                Duration:         duration,
+                Request:          request,
+                Response:         response,
+                ValidationResult: validation,
+                Timestamp:        time.Now(),
+        }</span>
+}
+
+func (r *Reporter) GenerateSuiteReport(suiteName string, testReports []TestReport, totalDuration time.Duration) *SuiteReport <span class="cov8" title="1">{
+        passed := 0
+        failed := 0
+
+        for _, report := range testReports </span><span class="cov8" title="1">{
+                if report.Status == "PASS" </span><span class="cov8" title="1">{
+                        passed++
+                }</span> else<span class="cov8" title="1"> {
+                        failed++
+                }</span>
+        }
+
+        <span class="cov8" title="1">return &amp;SuiteReport{
+                SuiteName:   suiteName,
+                TotalTests:  len(testReports),
+                PassedTests: passed,
+                FailedTests: failed,
+                Duration:    totalDuration,
+                Tests:       testReports,
+                Timestamp:   time.Now(),
+        }</span>
+}
+
+func (r *Reporter) PrintTestReport(report *TestReport) <span class="cov8" title="1">{
+        switch r.format </span>{
+        case "json":<span class="cov8" title="1">
+                r.printJSONTestReport(report)</span>
+        case "text":<span class="cov8" title="1">
+                r.printTextTestReport(report)</span>
+        default:<span class="cov8" title="1">
+                r.printTextTestReport(report)</span>
+        }
+}
+
+func (r *Reporter) PrintSuiteReport(report *SuiteReport) <span class="cov8" title="1">{
+        switch r.format </span>{
+        case "json":<span class="cov8" title="1">
+                r.printJSONSuiteReport(report)</span>
+        case "text":<span class="cov8" title="1">
+                r.printTextSuiteReport(report)</span>
+        default:<span class="cov8" title="1">
+                r.printTextSuiteReport(report)</span>
+        }
+}
+
+func (r *Reporter) SaveSuiteReport(report *SuiteReport) error <span class="cov8" title="1">{
+        if r.output == "" </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">var data []byte
+        var err error
+
+        switch r.format </span>{
+        case "json":<span class="cov8" title="1">
+                data, err = json.MarshalIndent(report, "", "  ")</span>
+        default:<span class="cov0" title="0">
+                data, err = json.MarshalIndent(report, "", "  ")</span>
+        }
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal report: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if err := os.WriteFile(r.output, data, 0644); err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("failed to write report to file: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">logger.WithFields(logrus.Fields{
+                "file":   r.output,
+                "format": r.format,
+        }).Info("Report saved to file")
+
+        return nil</span>
+}
+
+func (r *Reporter) printJSONTestReport(report *TestReport) <span class="cov8" title="1">{
+        data, err := json.MarshalIndent(report, "", "  ")
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to marshal test report to JSON:", err)
+                return
+        }</span>
+        <span class="cov8" title="1">fmt.Println(string(data))</span>
+}
+
+func (r *Reporter) printTextTestReport(report *TestReport) <span class="cov8" title="1">{
+        fmt.Printf("Test: %s\n", report.TestName)
+        fmt.Printf("Status: %s\n", report.Status)
+        fmt.Printf("Duration: %s\n", report.Duration)
+        fmt.Printf("Request: %s %s\n", report.Request.Method, report.Request.Path)
+        fmt.Printf("Response Status: %d\n", report.Response.StatusCode)
+        
+        if len(report.ValidationResult.Errors) &gt; 0 </span><span class="cov8" title="1">{
+                fmt.Println("Validation Errors:")
+                for _, err := range report.ValidationResult.Errors </span><span class="cov8" title="1">{
+                        fmt.Printf("  - %s\n", err)
+                }</span>
+        }
+        
+        <span class="cov8" title="1">if len(report.ValidationResult.Warnings) &gt; 0 </span><span class="cov8" title="1">{
+                fmt.Println("Validation Warnings:")
+                for _, warn := range report.ValidationResult.Warnings </span><span class="cov8" title="1">{
+                        fmt.Printf("  - %s\n", warn)
+                }</span>
+        }
+        
+        <span class="cov8" title="1">fmt.Println("---")</span>
+}
+
+func (r *Reporter) printJSONSuiteReport(report *SuiteReport) <span class="cov8" title="1">{
+        data, err := json.MarshalIndent(report, "", "  ")
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to marshal suite report to JSON:", err)
+                return
+        }</span>
+        <span class="cov8" title="1">fmt.Println(string(data))</span>
+}
+
+func (r *Reporter) printTextSuiteReport(report *SuiteReport) <span class="cov8" title="1">{
+        fmt.Printf("Suite: %s\n", report.SuiteName)
+        fmt.Printf("Total Tests: %d\n", report.TotalTests)
+        fmt.Printf("Passed: %d\n", report.PassedTests)
+        fmt.Printf("Failed: %d\n", report.FailedTests)
+        fmt.Printf("Duration: %s\n", report.Duration)
+        fmt.Printf("Success Rate: %.2f%%\n", float64(report.PassedTests)/float64(report.TotalTests)*100)
+        fmt.Println("====================================")
+        
+        for _, test := range report.Tests </span><span class="cov8" title="1">{
+                r.printTextTestReport(&amp;test)
+        }</span>
+}</pre>
+		
+		<pre class="file" id="file5" style="display: none">package validator
+
+import (
+        "fmt"
+        "regexp"
+        "strings"
+        "waf-tester/internal/logger"
+        "waf-tester/internal/core/config"
+        "waf-tester/internal/executor"
+
+        "github.com/sirupsen/logrus"
+)
+
+type ValidationResult struct {
+        Passed   bool
+        Errors   []string
+        Warnings []string
+}
+
+type ResponseValidator struct{}
+
+func NewResponseValidator() *ResponseValidator <span class="cov8" title="1">{
+        return &amp;ResponseValidator{}
+}</span>
+
+func (v *ResponseValidator) Validate(response *executor.Response, expected *config.Expected, testName string) *ValidationResult <span class="cov8" title="1">{
+        result := &amp;ValidationResult{
+                Passed:   true,
+                Errors:   []string{},
+                Warnings: []string{},
+        }
+
+        logger.WithFields(logrus.Fields{
+                "test_name":   testName,
+                "status_code": response.StatusCode,
+        }).Debug("Starting response validation")
+
+        v.validateStatusCode(response, expected, result)
+        v.validateHeaders(response, expected, result)
+        v.validateBody(response, expected, result)
+
+        if len(result.Errors) &gt; 0 </span><span class="cov8" title="1">{
+                result.Passed = false
+        }</span>
+
+        <span class="cov8" title="1">logger.WithFields(logrus.Fields{
+                "test_name":    testName,
+                "passed":       result.Passed,
+                "error_count":  len(result.Errors),
+                "warning_count": len(result.Warnings),
+        }).Info("Response validation completed")
+
+        return result</span>
+}
+
+func (v *ResponseValidator) validateStatusCode(response *executor.Response, expected *config.Expected, result *ValidationResult) <span class="cov8" title="1">{
+        if len(expected.Status) == 0 </span><span class="cov8" title="1">{
+                result.Warnings = append(result.Warnings, "No expected status codes defined")
+                return
+        }</span>
+
+        <span class="cov8" title="1">for _, expectedStatus := range expected.Status </span><span class="cov8" title="1">{
+                if response.StatusCode == expectedStatus </span><span class="cov8" title="1">{
+                        logger.WithFields(logrus.Fields{
+                                "expected_status": expectedStatus,
+                                "actual_status":   response.StatusCode,
+                        }).Debug("Status code validation passed")
+                        return
+                }</span>
+        }
+
+        <span class="cov8" title="1">result.Errors = append(result.Errors, fmt.Sprintf(
+                "Status code mismatch: expected one of %v, got %d",
+                expected.Status,
+                response.StatusCode,
+        ))</span>
+}
+
+func (v *ResponseValidator) validateHeaders(response *executor.Response, expected *config.Expected, result *ValidationResult) <span class="cov8" title="1">{
+        if len(expected.Headers) == 0 </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">for expectedKey, expectedValue := range expected.Headers </span><span class="cov8" title="1">{
+                actualValue, exists := response.Headers[expectedKey]
+                if !exists </span><span class="cov8" title="1">{
+                        result.Errors = append(result.Errors, fmt.Sprintf(
+                                "Missing expected header: %s",
+                                expectedKey,
+                        ))
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">if !strings.Contains(actualValue, expectedValue) </span><span class="cov8" title="1">{
+                        result.Errors = append(result.Errors, fmt.Sprintf(
+                                "Header value mismatch for %s: expected to contain '%s', got '%s'",
+                                expectedKey,
+                                expectedValue,
+                                actualValue,
+                        ))
+                }</span>
+        }
+}
+
+func (v *ResponseValidator) validateBody(response *executor.Response, expected *config.Expected, result *ValidationResult) <span class="cov8" title="1">{
+        if expected.Body == nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">bodyExpected := expected.Body
+
+        if bodyExpected.Exact != "" </span><span class="cov8" title="1">{
+                if response.Body != bodyExpected.Exact </span><span class="cov8" title="1">{
+                        result.Errors = append(result.Errors, fmt.Sprintf(
+                                "Body exact match failed: expected '%s', got '%s'",
+                                bodyExpected.Exact,
+                                response.Body,
+                        ))
+                }</span>
+                <span class="cov8" title="1">return</span>
+        }
+
+        <span class="cov8" title="1">if bodyExpected.Regex != "" </span><span class="cov8" title="1">{
+                matched, err := regexp.MatchString(bodyExpected.Regex, response.Body)
+                if err != nil </span><span class="cov8" title="1">{
+                        result.Errors = append(result.Errors, fmt.Sprintf(
+                                "Invalid regex pattern '%s': %v",
+                                bodyExpected.Regex,
+                                err,
+                        ))
+                        return
+                }</span>
+                <span class="cov8" title="1">if !matched </span><span class="cov8" title="1">{
+                        result.Errors = append(result.Errors, fmt.Sprintf(
+                                "Body regex match failed: pattern '%s' did not match response body",
+                                bodyExpected.Regex,
+                        ))
+                }</span>
+                <span class="cov8" title="1">return</span>
+        }
+
+        <span class="cov8" title="1">for _, expectedContains := range bodyExpected.Contains </span><span class="cov8" title="1">{
+                if !strings.Contains(response.Body, expectedContains) </span><span class="cov8" title="1">{
+                        result.Errors = append(result.Errors, fmt.Sprintf(
+                                "Body should contain '%s' but it was not found",
+                                expectedContains,
+                        ))
+                }</span>
+        }
+
+        <span class="cov8" title="1">for _, expectedNotContains := range bodyExpected.NotContains </span><span class="cov8" title="1">{
+                if strings.Contains(response.Body, expectedNotContains) </span><span class="cov8" title="1">{
+                        result.Errors = append(result.Errors, fmt.Sprintf(
+                                "Body should not contain '%s' but it was found",
+                                expectedNotContains,
+                        ))
+                }</span>
+        }
+}
+
+func (v *ResponseValidator) ValidateMultiple(responses []*executor.Response, expected []*config.Expected, testNames []string) []*ValidationResult <span class="cov8" title="1">{
+        if len(responses) != len(expected) || len(responses) != len(testNames) </span><span class="cov8" title="1">{
+                panic("mismatched lengths in ValidateMultiple")</span>
+        }
+
+        <span class="cov8" title="1">results := make([]*ValidationResult, len(responses))
+        for i := range responses </span><span class="cov8" title="1">{
+                results[i] = v.Validate(responses[i], expected[i], testNames[i])
+        }</span>
+
+        <span class="cov8" title="1">return results</span>
+}</pre>
+		
+		<pre class="file" id="file6" style="display: none">// Package client provides a public API for the WAF testing functionality.
+package client
+
+import (
+        "context"
+        "time"
+        "waf-tester/internal/core/config"
+        "waf-tester/internal/executor"
+        "waf-tester/internal/parser"
+        "waf-tester/internal/reporter"
+        "waf-tester/internal/validator"
+)
+
+// Client represents a WAF testing client
+type Client struct {
+        parser    *parser.Parser
+        executor  *executor.HTTPExecutor
+        validator *validator.ResponseValidator
+        reporter  *reporter.Reporter
+}
+
+// Config represents the client configuration
+type Config struct {
+        Timeout     time.Duration
+        OutputFile  string
+        Format      string // "json" or "text"
+        Concurrent  int
+}
+
+// TestResult represents the result of running a test
+type TestResult struct {
+        TestName string
+        Passed   bool
+        Duration time.Duration
+        Errors   []string
+        Warnings []string
+}
+
+// SuiteResult represents the result of running a test suite
+type SuiteResult struct {
+        SuiteName    string
+        TotalTests   int
+        PassedTests  int
+        FailedTests  int
+        Duration     time.Duration
+        TestResults  []TestResult
+}
+
+// NewClient creates a new WAF testing client
+func NewClient(cfg Config) *Client <span class="cov0" title="0">{
+        if cfg.Timeout == 0 </span><span class="cov0" title="0">{
+                cfg.Timeout = 30 * time.Second
+        }</span>
+        <span class="cov0" title="0">if cfg.Format == "" </span><span class="cov0" title="0">{
+                cfg.Format = "text"
+        }</span>
+        <span class="cov0" title="0">if cfg.Concurrent &lt; 1 </span><span class="cov0" title="0">{
+                cfg.Concurrent = 1
+        }</span>
+
+        <span class="cov0" title="0">return &amp;Client{
+                parser:    parser.NewParser(),
+                executor:  executor.NewHTTPExecutor(cfg.Timeout),
+                validator: validator.NewResponseValidator(),
+                reporter:  reporter.NewReporter(cfg.Format, cfg.OutputFile),
+        }</span>
+}
+
+// ValidateFile validates a single YAML test file
+func (c *Client) ValidateFile(filename string) error <span class="cov0" title="0">{
+        _, err := c.parser.ParseFile(filename)
+        return err
+}</span>
+
+// ValidateDirectory validates all YAML files in a directory
+func (c *Client) ValidateDirectory(dir string) error <span class="cov0" title="0">{
+        _, err := c.parser.ParseDirectory(dir)
+        return err
+}</span>
+
+// RunTestFile executes tests from a single YAML file
+func (c *Client) RunTestFile(filename string) (*SuiteResult, error) <span class="cov0" title="0">{
+        wafTest, err := c.parser.ParseFile(filename)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return c.runTests(wafTest)</span>
+}
+
+// RunTestDirectory executes all tests from YAML files in a directory
+func (c *Client) RunTestDirectory(dir string) (*SuiteResult, error) <span class="cov0" title="0">{
+        wafTests, err := c.parser.ParseDirectory(dir)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Combine all tests into a single suite
+        <span class="cov0" title="0">var allTests []config.Test
+        for _, wafTest := range wafTests </span><span class="cov0" title="0">{
+                allTests = append(allTests, wafTest.Spec.Tests...)
+        }</span>
+
+        <span class="cov0" title="0">if len(wafTests) == 0 </span><span class="cov0" title="0">{
+                return &amp;SuiteResult{
+                        SuiteName: "Empty Directory",
+                }, nil
+        }</span>
+
+        // Use the first test's target configuration
+        // In a real implementation, you might want to handle multiple targets differently
+        <span class="cov0" title="0">combinedTest := &amp;config.WafTest{
+                Metadata: config.Metadata{
+                        Name: "Combined Tests",
+                },
+                Spec: config.Spec{
+                        Target: wafTests[0].Spec.Target,
+                        Tests:  allTests,
+                },
+        }
+
+        return c.runTests(combinedTest)</span>
+}
+
+// RunTestWithContext executes tests with a context for cancellation
+func (c *Client) RunTestWithContext(ctx context.Context, filename string) (*SuiteResult, error) <span class="cov0" title="0">{
+        wafTest, err := c.parser.ParseFile(filename)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return c.runTestsWithContext(ctx, wafTest)</span>
+}
+
+// runTests executes the actual test logic
+func (c *Client) runTests(wafTest *config.WafTest) (*SuiteResult, error) <span class="cov0" title="0">{
+        start := time.Now()
+        var testResults []TestResult
+
+        for _, test := range wafTest.Spec.Tests </span><span class="cov0" title="0">{
+                testStart := time.Now()
+
+                response, err := c.executor.ExecuteTest(&amp;test, wafTest.Spec.Target.BaseURL)
+                if err != nil </span><span class="cov0" title="0">{
+                        testResults = append(testResults, TestResult{
+                                TestName: test.Name,
+                                Passed:   false,
+                                Duration: time.Since(testStart),
+                                Errors:   []string{err.Error()},
+                        })
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">validation := c.validator.Validate(response, &amp;test.Expected, test.Name)
+
+                testResults = append(testResults, TestResult{
+                        TestName: test.Name,
+                        Passed:   validation.Passed,
+                        Duration: time.Since(testStart),
+                        Errors:   validation.Errors,
+                        Warnings: validation.Warnings,
+                })</span>
+        }
+
+        // Calculate summary
+        <span class="cov0" title="0">passed := 0
+        for _, result := range testResults </span><span class="cov0" title="0">{
+                if result.Passed </span><span class="cov0" title="0">{
+                        passed++
+                }</span>
+        }
+
+        <span class="cov0" title="0">return &amp;SuiteResult{
+                SuiteName:   wafTest.Metadata.Name,
+                TotalTests:  len(testResults),
+                PassedTests: passed,
+                FailedTests: len(testResults) - passed,
+                Duration:    time.Since(start),
+                TestResults: testResults,
+        }, nil</span>
+}
+
+// runTestsWithContext executes tests with context support
+func (c *Client) runTestsWithContext(ctx context.Context, wafTest *config.WafTest) (*SuiteResult, error) <span class="cov0" title="0">{
+        start := time.Now()
+        var testResults []TestResult
+
+        for _, test := range wafTest.Spec.Tests </span><span class="cov0" title="0">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov0" title="0">
+                        return nil, ctx.Err()</span>
+                default:<span class="cov0" title="0"></span>
+                }
+
+                <span class="cov0" title="0">testStart := time.Now()
+
+                response, err := c.executor.ExecuteTestWithContext(ctx, &amp;test, wafTest.Spec.Target.BaseURL)
+                if err != nil </span><span class="cov0" title="0">{
+                        testResults = append(testResults, TestResult{
+                                TestName: test.Name,
+                                Passed:   false,
+                                Duration: time.Since(testStart),
+                                Errors:   []string{err.Error()},
+                        })
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">validation := c.validator.Validate(response, &amp;test.Expected, test.Name)
+
+                testResults = append(testResults, TestResult{
+                        TestName: test.Name,
+                        Passed:   validation.Passed,
+                        Duration: time.Since(testStart),
+                        Errors:   validation.Errors,
+                        Warnings: validation.Warnings,
+                })</span>
+        }
+
+        // Calculate summary
+        <span class="cov0" title="0">passed := 0
+        for _, result := range testResults </span><span class="cov0" title="0">{
+                if result.Passed </span><span class="cov0" title="0">{
+                        passed++
+                }</span>
+        }
+
+        <span class="cov0" title="0">return &amp;SuiteResult{
+                SuiteName:   wafTest.Metadata.Name,
+                TotalTests:  len(testResults),
+                PassedTests: passed,
+                FailedTests: len(testResults) - passed,
+                Duration:    time.Since(start),
+                TestResults: testResults,
+        }, nil</span>
+}</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

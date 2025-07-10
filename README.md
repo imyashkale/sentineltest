@@ -1,6 +1,6 @@
-# WAF Tester
+# WafGuard
 
-A Go-based tool for testing Web Application Firewalls (WAFs) using Kubernetes-like YAML configuration files.
+A professional Go-based tool for testing Web Application Firewalls (WAFs) using Kubernetes-like YAML configuration files.
 
 ## Features
 
@@ -13,8 +13,57 @@ A Go-based tool for testing Web Application Firewalls (WAFs) using Kubernetes-li
 
 ## Installation
 
+### Option 1: Install Globally (Recommended)
+
+Install WafGuard globally so you can use `wafguard` from anywhere:
+
 ```bash
-go build -o waf-tester cmd/waf-tester/main.go
+# Clone the repository
+git clone <repository-url>
+cd wafguard
+
+# Install globally (to /usr/local/bin)
+make install
+
+# Now you can use wafguard from anywhere!
+wafguard --help
+```
+
+### Option 2: Local Go Installation
+
+Install to your Go bin directory (no sudo required):
+
+```bash
+# Install locally to $GOPATH/bin or ~/go/bin
+make install-local
+
+# Make sure your Go bin is in PATH
+export PATH=$PATH:$GOPATH/bin
+# or
+export PATH=$PATH:$HOME/go/bin
+
+# Now you can use wafguard globally
+wafguard --help
+```
+
+### Option 3: Build Only
+
+Build the binary without installing:
+
+```bash
+# Build binary to ./bin/wafguard
+make build
+
+# Use the local binary
+./bin/wafguard --help
+```
+
+### Uninstall
+
+To remove WafGuard from your system:
+
+```bash
+make uninstall
 ```
 
 ## Usage
@@ -23,13 +72,13 @@ go build -o waf-tester cmd/waf-tester/main.go
 
 ```bash
 # Run a single test file
-./waf-tester run examples/test-configs/sql-injection-test.yaml
+wafguard run examples/test-configs/sql-injection-test.yaml
 
 # Run all tests in a directory
-./waf-tester run examples/test-configs/
+wafguard run examples/test-configs/
 
 # Run with custom options
-./waf-tester run examples/test-configs/ \
+wafguard run examples/test-configs/ \
   --concurrent 5 \
   --format json \
   --output results.json \
@@ -40,10 +89,10 @@ go build -o waf-tester cmd/waf-tester/main.go
 
 ```bash
 # Validate test file syntax
-./waf-tester validate examples/test-configs/sql-injection-test.yaml
+wafguard validate examples/test-configs/sql-injection-test.yaml
 
 # Validate all files in directory
-./waf-tester validate examples/test-configs/
+wafguard validate examples/test-configs/
 ```
 
 ### Command Line Options
@@ -121,16 +170,20 @@ The `examples/test-configs/` directory contains pre-built test cases for common 
 ## Project Structure
 
 ```
-waf-tester/
-├── cmd/waf-tester/           # CLI application
-├── pkg/
-│   ├── config/               # Configuration types
+wafguard/
+├── cmd/wafguard/             # CLI application
+├── internal/                 # Internal packages (core logic)
+│   ├── core/config/          # Configuration types
 │   ├── parser/               # YAML parser
 │   ├── executor/             # HTTP request executor
 │   ├── validator/            # Response validator
-│   └── reporter/             # Test result reporting
-├── internal/logger/          # Structured logging
+│   ├── reporter/             # Test result reporting
+│   └── logger/               # Structured logging
+├── pkg/                      # Public API
+│   ├── client/               # Public client interface
+│   └── types/                # Public type definitions
 ├── examples/test-configs/    # Example test cases
+├── Makefile                  # Build automation
 └── README.md
 ```
 
@@ -147,18 +200,34 @@ waf-tester/
 ### Building
 
 ```bash
+# Using Make (recommended)
+make build
+
+# Or manually
 go mod tidy
-go build -o waf-tester cmd/waf-tester/main.go
+go build -o wafguard cmd/wafguard/main.go
+
+# For development
+make dev-deps  # Install development dependencies
+make test      # Run tests
+make lint      # Run linter
+make format    # Format code
 ```
 
 ### Testing
 
 ```bash
+# Run unit tests
+make test
+
+# Run tests with coverage
+make test-coverage
+
 # Validate example configurations
-./waf-tester validate examples/test-configs/
+wafguard validate examples/test-configs/
 
 # Run example tests (requires internet connection)
-./waf-tester run examples/test-configs/sql-injection-test.yaml
+wafguard run examples/test-configs/sql-injection-test.yaml
 ```
 
 ## Contributing
