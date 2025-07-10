@@ -1,0 +1,43 @@
+apiVersion: waf-test/v1
+kind: WafTest
+metadata:
+  name: sql-injection-test
+  description: Test SQL injection attack protection
+spec:
+  target:
+    baseUrl: https://httpbin.org
+    timeout: 30s
+  tests:
+    - name: basic-sql-injection-get
+      request:
+        method: GET
+        path: /get?id=1' OR '1'='1
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["args"]
+    
+    - name: union-sql-injection-post
+      request:
+        method: POST
+        path: /post
+        headers:
+          Content-Type: application/json
+        body: '{"username": "admin", "password": "'' UNION SELECT * FROM users--"}'
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["json"]
+    
+    - name: blind-sql-injection
+      request:
+        method: GET
+        path: /get?search=test' AND (SELECT COUNT(*) FROM users WHERE username='admin') > 0--
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["args"]

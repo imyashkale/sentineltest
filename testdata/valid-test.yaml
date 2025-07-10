@@ -1,0 +1,20 @@
+apiVersion: waf-test/v1
+kind: WafTest
+metadata:
+  name: test-config
+  description: Valid test configuration
+spec:
+  target:
+    baseUrl: https://httpbin.org
+    timeout: 30s
+  tests:
+    - name: simple-get-test
+      request:
+        method: GET
+        path: /get
+        headers:
+          User-Agent: test-agent
+      expected:
+        status: [200]
+        body:
+          contains: ["args"]

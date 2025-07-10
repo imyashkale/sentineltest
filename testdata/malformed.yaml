@@ -1,0 +1,7 @@
+apiVersion: waf-test/v1
+kind: WafTest
+metadata:
+  name: malformed
+  invalid_yaml: [
+spec:
+  target:

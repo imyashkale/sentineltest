@@ -1,0 +1,8 @@
+apiVersion: waf-test/v1
+kind: InvalidKind
+metadata:
+  name: ""
+spec:
+  target:
+    baseUrl: not-a-url
+  tests: []

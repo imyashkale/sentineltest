@@ -1,0 +1,42 @@
+apiVersion: waf-test/v1
+kind: WafTest
+metadata:
+  name: directory-traversal-test
+  description: Test directory traversal attack protection
+spec:
+  target:
+    baseUrl: https://httpbin.org
+    timeout: 30s
+  tests:
+    - name: basic-directory-traversal
+      request:
+        method: GET
+        path: /get?file=../../../etc/passwd
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["args"]
+    
+    - name: encoded-directory-traversal
+      request:
+        method: GET
+        path: /get?file=%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["args"]
+    
+    - name: double-encoded-traversal
+      request:
+        method: GET
+        path: /get?file=%252e%252e%252f%252e%252e%252f%252e%252e%252fetc%252fpasswd
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["args"]

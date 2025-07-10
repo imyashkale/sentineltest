@@ -1,0 +1,43 @@
+apiVersion: waf-test/v1
+kind: WafTest
+metadata:
+  name: xss-test
+  description: Test Cross-Site Scripting (XSS) attack protection
+spec:
+  target:
+    baseUrl: https://httpbin.org
+    timeout: 30s
+  tests:
+    - name: reflected-xss-get
+      request:
+        method: GET
+        path: /get?search=<script>alert('xss')</script>
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["args"]
+    
+    - name: stored-xss-post
+      request:
+        method: POST
+        path: /post
+        headers:
+          Content-Type: application/json
+        body: '{"comment": "<img src=x onerror=alert(1)>", "user": "test"}'
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["json"]
+    
+    - name: dom-xss-fragment
+      request:
+        method: GET
+        path: /get?callback=<script>alert(document.domain)</script>
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200, 403, 406]
+        body:
+          contains: ["args"]
