@@ -1,0 +1,44 @@
+{
+  "suite_name": "All Tests",
+  "total_tests": 1,
+  "passed_tests": 0,
+  "failed_tests": 1,
+  "duration": 1444844083,
+  "tests": [
+    {
+      "test_name": "hello-world-get",
+      "status": "FAIL",
+      "duration": 1444723250,
+      "request": {
+        "Method": "GET",
+        "Path": "/get",
+        "Headers": {
+          "User-Agent": "waf-tester/1.0"
+        },
+        "Body": ""
+      },
+      "response": {
+        "StatusCode": 200,
+        "Headers": {
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "*",
+          "Content-Length": "269",
+          "Content-Type": "application/json",
+          "Date": "Thu, 10 Jul 2025 18:12:30 GMT",
+          "Server": "gunicorn/19.9.0"
+        },
+        "Body": "{\n  \"args\": {}, \n  \"headers\": {\n    \"Accept-Encoding\": \"gzip\", \n    \"Host\": \"httpbin.org\", \n    \"User-Agent\": \"waf-tester/1.0\", \n    \"X-Amzn-Trace-Id\": \"Root=1-6870028e-47775430165001863b93d1e3\"\n  }, \n  \"origin\": \"103.197.75.101\", \n  \"url\": \"https://httpbin.org/get\"\n}\n",
+        "Duration": 1444653375
+      },
+      "validation_result": {
+        "Passed": false,
+        "Errors": [
+          "Body should contain 'Hello, World!' but it was not found"
+        ],
+        "Warnings": []
+      },
+      "timestamp": "2025-07-10T23:42:30.711116+05:30"
+    }
+  ],
+  "timestamp": "2025-07-10T23:42:30.711232+05:30"
+}

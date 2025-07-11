@@ -17,7 +17,7 @@ func TestIsDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create temporary file
 	tmpFile := filepath.Join(tmpDir, "test.txt")
@@ -68,7 +68,7 @@ func TestExecuteTestsSequentially(t *testing.T) {
 			"path":   r.URL.Path,
 			"query":  r.URL.RawQuery,
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -107,7 +107,7 @@ spec:
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	testFile := filepath.Join(tmpDir, "test.yaml")
 	err = os.WriteFile(testFile, []byte(yamlContent), 0644)
@@ -130,7 +130,7 @@ spec:
 			"method": r.Method,
 			"path":   r.URL.Path,
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -206,13 +206,13 @@ func TestMainPackageIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create a test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write([]byte(`{"status": "ok", "method": "` + r.Method + `"}`))
+		_, _ = w.Write([]byte(`{"status": "ok", "method": "` + r.Method + `"}`))
 	}))
 	defer server.Close()
 
@@ -253,7 +253,7 @@ spec:
 	if err != nil {
 		t.Fatalf("Test server not working: %v", err)
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		t.Errorf("Test server status = %d, want 200", resp.StatusCode)
@@ -288,7 +288,7 @@ func TestErrorHandling(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Test with invalid YAML file
 	invalidYAML := `invalid yaml content [`
@@ -331,7 +331,7 @@ func TestValidationMode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create valid YAML file
 	validYAML := `
