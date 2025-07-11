@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#2563eb" stroke="#1e40af" stroke-width="4"/>
+  
+  <!-- Shield shape -->
+  <path d="M100 30 L130 45 L130 80 Q130 110 100 130 Q70 110 70 80 L70 45 Z" 
+        fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+  
+  <!-- WAF text -->
+  <text x="100" y="85" font-family="Arial, sans-serif" font-size="18" font-weight="bold" 
+        text-anchor="middle" fill="#2563eb">WAF</text>
+  
+  <!-- Guard text -->
+  <text x="100" y="160" font-family="Arial, sans-serif" font-size="14" font-weight="bold" 
+        text-anchor="middle" fill="#ffffff">GUARD</text>
+  
+  <!-- Security icon elements -->
+  <circle cx="100" cy="65" r="8" fill="#10b981" stroke="#059669" stroke-width="2"/>
+  <path d="M95 65 L98 68 L105 58" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>
