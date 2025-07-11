@@ -1,6 +1,10 @@
-# The WafGuard
-
-A professional tool for testing Web Application Firewalls (WAFs) by sending HTTP requests and validating responses against expected outcomes.
+<div align="center">
+  <img src="assets/logo.svg" alt="WAF Guard Logo" width="150" height="150">
+  
+  # The WafGuard
+  
+  A professional tool for testing Web Application Firewalls (WAFs) by sending HTTP requests and validating responses against expected outcomes.
+</div>
 
 ## What It Does
 
