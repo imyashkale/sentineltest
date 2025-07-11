@@ -28,8 +28,7 @@
       "Bash(gh pr create:*)",
       "mcp__github__list_workflow_runs",
       "mcp__github__get_job_logs",
-      "Bash(~/go/bin/golangci-lint run)",
-      "mcp__github__get_workflow_run"
+      "Bash(~/go/bin/golangci-lint run)"
     ],
     "deny": []
   }
