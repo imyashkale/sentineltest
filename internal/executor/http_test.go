@@ -219,7 +219,7 @@ func TestExecuteTest(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Test-Header", "test-value")
 		w.WriteHeader(200)
-		w.Write([]byte(`{"message": "success", "method": "` + r.Method + `"}`))
+		_, _ = w.Write([]byte(`{"message": "success", "method": "` + r.Method + `"}`))
 	}))
 	defer server.Close()
 
@@ -271,7 +271,7 @@ func TestExecuteTestWithContext(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(100 * time.Millisecond) // Small delay
 		w.WriteHeader(200)
-		w.Write([]byte(`{"message": "success"}`))
+		_, _ = w.Write([]byte(`{"message": "success"}`))
 	}))
 	defer server.Close()
 
@@ -310,7 +310,7 @@ func TestExecuteTestServerError(t *testing.T) {
 	// Create a test server that returns errors
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
-		w.Write([]byte(`{"error": "internal server error"}`))
+		_, _ = w.Write([]byte(`{"error": "internal server error"}`))
 	}))
 	defer server.Close()
 
@@ -342,10 +342,10 @@ func TestExecuteTestWithBody(t *testing.T) {
 	// Create a test server that echoes the request body
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body := make([]byte, r.ContentLength)
-		r.Body.Read(body)
+		_, _ = r.Body.Read(body)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write([]byte(`{"received": "` + string(body) + `"}`))
+		_, _ = w.Write([]byte(`{"received": "` + string(body) + `"}`))
 	}))
 	defer server.Close()
 
@@ -407,7 +407,7 @@ func TestExecuteTestTimeout(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(2 * time.Second) // Longer than our timeout
 		w.WriteHeader(200)
-		w.Write([]byte(`{"message": "success"}`))
+		_, _ = w.Write([]byte(`{"message": "success"}`))
 	}))
 	defer server.Close()
 

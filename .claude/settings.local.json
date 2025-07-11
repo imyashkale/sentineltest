@@ -15,7 +15,20 @@
       "Bash(grep:*)",
       "Bash(./bin/wafguard:*)",
       "Bash(ls:*)",
-      "Bash(~/go/bin/wafguard:*)"
+      "Bash(~/go/bin/wafguard:*)",
+      "mcp__github__create_branch",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "mcp__github__create_pull_request",
+      "mcp__github__get_me",
+      "mcp__github__search_repositories",
+      "mcp__github__search_users",
+      "Bash(gh pr create:*)",
+      "mcp__github__list_workflow_runs",
+      "mcp__github__get_job_logs",
+      "Bash(~/go/bin/golangci-lint run)"
     ],
     "deny": []
   }

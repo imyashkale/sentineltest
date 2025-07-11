@@ -1,0 +1,30 @@
+apiVersion: waf-test/v1
+kind: WafTest
+metadata:
+  name: hello-world-test
+  description: Test hello world
+spec:
+  target:
+    baseUrl: https://httpbin.org
+    timeout: 30s
+  tests:
+    - name: hello-world-get
+      request:
+        method: GET
+        path: /get
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200]
+        body:
+          contains: ["Hello, World!"] 
+    - name: extracted-tests 
+      request:
+        method: GET
+        path: /get
+        headers:
+          User-Agent: waf-tester/1.0
+      expected:
+        status: [200]
+        body:
+          contains: ["Hello, World!"] 

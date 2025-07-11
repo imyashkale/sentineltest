@@ -157,7 +157,7 @@ func TestParseFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	validYAML := `
 apiVersion: waf-test/v1
@@ -241,7 +241,7 @@ func TestParseDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create valid YAML files
 	validYAML1 := `
@@ -379,7 +379,7 @@ spec:
 	if err != nil {
 		t.Fatalf("Failed to create valid temp dir: %v", err)
 	}
-	defer os.RemoveAll(validDir)
+	defer func() { _ = os.RemoveAll(validDir) }()
 
 	err = os.WriteFile(filepath.Join(validDir, "test1.yaml"), []byte(validYAML1), 0644)
 	if err != nil {
@@ -422,7 +422,7 @@ func TestParseDirectoryEmptyDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	results, err := parser.ParseDirectory(tmpDir)
 	if err != nil {
