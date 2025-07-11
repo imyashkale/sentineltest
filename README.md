@@ -18,52 +18,9 @@ WafGuard executes HTTP tests against WAF-protected endpoints using YAML configur
 
 ## Installation
 
-### Pre-built Binaries (Recommended)
-
-#### macOS
 ```bash
-# For Intel Macs
-curl -L -o wafguard https://github.com/imyashkale/wafguard/releases/latest/download/wafguard-darwin-amd64
-chmod +x wafguard
-sudo mv wafguard /usr/local/bin/
-
-# For Apple Silicon Macs (M1/M2)
-curl -L -o wafguard https://github.com/imyashkale/wafguard/releases/latest/download/wafguard-darwin-arm64
-chmod +x wafguard
-sudo mv wafguard /usr/local/bin/
-
-# Verify installation
-wafguard --help
-```
-
-#### Linux
-```bash
-curl -L -o wafguard https://github.com/imyashkale/wafguard/releases/latest/download/wafguard-linux-amd64
-chmod +x wafguard
-sudo mv wafguard /usr/local/bin/
-wafguard --help
-```
-
-#### Windows
-```powershell
-# Download the binary
-Invoke-WebRequest -Uri "https://github.com/imyashkale/wafguard/releases/latest/download/wafguard-windows-amd64.exe" -OutFile "wafguard.exe"
-# Add to PATH or use directly
-.\wafguard.exe --help
-```
-
-### Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/imyashkale/wafguard.git
-cd wafguard
-
 # Install globally (recommended)
 make install
-
-# Or install to local Go bin
-make install-local
 
 # Now use from anywhere
 wafguard --help

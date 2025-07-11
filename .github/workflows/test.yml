@@ -35,3 +35,13 @@ jobs:
     - name: Run tests with race detection
       run: make test-race
     
+    - name: Generate coverage report
+      run: make test-coverage
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.out
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
