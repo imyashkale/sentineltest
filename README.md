@@ -1,14 +1,14 @@
 <div align="center">
-  <img src="assets/logo.svg" alt="WAF Guard Logo" width="150" height="150">
+  <img src="assets/logo.svg" alt="Sentinel Test Logo" width="150" height="150">
   
-  # The WafGuard
+  # Sentinel Test
   
   A professional tool for testing Web Application Firewalls (WAFs) by sending HTTP requests and validating responses against expected outcomes.
 </div>
 
 ## What It Does
 
-WafGuard executes HTTP tests against WAF-protected endpoints using YAML configuration files. It validates responses (status codes, headers, body content) and generates detailed reports showing which tests passed or failed.
+Sentinel Test executes HTTP tests against WAF-protected endpoints using YAML configuration files. It validates responses (status codes, headers, body content) and generates detailed reports showing which tests passed or failed.
 
 **Use Cases:**
 - Test WAF rule effectiveness
@@ -23,7 +23,7 @@ WafGuard executes HTTP tests against WAF-protected endpoints using YAML configur
 make install
 
 # Now use from anywhere
-wafguard --help
+sentineltest --help
 ```
 
 ## Quick Start
@@ -56,7 +56,7 @@ spec:
 2. **Run the test**:
 
 ```bash
-wafguard run test.yaml
+sentineltest run test.yaml
 ```
 
 3. **View results**:
@@ -129,16 +129,16 @@ spec:
 
 ```bash
 # Run tests
-wafguard run test.yaml                    # Single file
-wafguard run tests/                       # Directory
-wafguard run tests/ --concurrent 5        # Parallel execution
+sentineltest run test.yaml                    # Single file
+sentineltest run tests/                       # Directory
+sentineltest run tests/ --concurrent 5        # Parallel execution
 
 # Validate configuration
-wafguard validate test.yaml               # Check syntax
+sentineltest validate test.yaml               # Check syntax
 
 # Output options
-wafguard run test.yaml --format json      # JSON output
-wafguard run test.yaml --output results.json  # Save to file
+sentineltest run test.yaml --format json      # JSON output
+sentineltest run test.yaml --output results.json  # Save to file
 ```
 
 ## Output Formats
@@ -190,10 +190,10 @@ The `examples/test-configs/` directory contains ready-to-use test cases:
 
 ```bash
 # Test all examples
-wafguard run examples/test-configs/
+sentineltest run examples/test-configs/
 
 # Test specific attack vector
-wafguard run examples/test-configs/sql-injection-test.yaml
+sentineltest run examples/test-configs/sql-injection-test.yaml
 ```
 
 ## Development
