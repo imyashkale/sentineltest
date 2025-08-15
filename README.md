@@ -1,10 +1,6 @@
-<div align="center">
-  <img src="assets/logo.svg" alt="Sentinel Test Logo" width="150" height="150">
-  
-  # Sentinel Test
-  
-  A professional tool for testing Web Application Firewalls (WAFs) by sending HTTP requests and validating responses against expected outcomes.
-</div>
+# Sentinel Test
+
+A professional tool for testing Web Application Firewalls (WAFs) by sending HTTP requests and validating responses against expected outcomes.
 
 ## What It Does
 
