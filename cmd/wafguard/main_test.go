@@ -75,7 +75,7 @@ func TestExecuteTestsSequentially(t *testing.T) {
 	// Create test configuration
 	yamlContent := `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: sequential-test
   description: Test sequential execution
@@ -219,7 +219,7 @@ func TestMainPackageIntegration(t *testing.T) {
 	// Create test YAML files
 	validYAML := `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: integration-test
 spec:
@@ -336,7 +336,7 @@ func TestValidationMode(t *testing.T) {
 	// Create valid YAML file
 	validYAML := `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: validation-test
 spec:
@@ -359,7 +359,7 @@ spec:
 
 	// Validation mode should not make HTTP requests
 	// This is more of a documentation test showing the intended behavior
-	if !strings.Contains(validYAML, "WafTest") {
+	if !strings.Contains(validYAML, "SentinelTest") {
 		t.Error("Validation test case should contain valid YAML")
 	}
 }

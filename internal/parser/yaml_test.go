@@ -28,7 +28,7 @@ func TestParseYAML(t *testing.T) {
 			name: "valid YAML",
 			yaml: `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: test-config
   description: Test description
@@ -50,7 +50,7 @@ spec:
 			name: "invalid YAML syntax",
 			yaml: `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: test-config
   invalid_yaml: [
@@ -63,7 +63,7 @@ spec:
 			name: "invalid validation - missing required fields",
 			yaml: `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: ""
 spec:
@@ -97,7 +97,7 @@ spec:
 			name: "invalid HTTP method",
 			yaml: `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: test
 spec:
@@ -117,7 +117,7 @@ spec:
 			name: "empty tests array",
 			yaml: `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: test
 spec:
@@ -161,7 +161,7 @@ func TestParseFile(t *testing.T) {
 
 	validYAML := `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: test-config
 spec:
@@ -246,7 +246,7 @@ func TestParseDirectory(t *testing.T) {
 	// Create valid YAML files
 	validYAML1 := `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: test-config-1
 spec:
@@ -263,7 +263,7 @@ spec:
 
 	validYAML2 := `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: test-config-2
 spec:
@@ -311,7 +311,7 @@ spec:
 
 	validYAML3 := `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: test-config-3
 spec:

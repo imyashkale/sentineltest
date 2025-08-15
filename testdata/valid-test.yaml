@@ -1,5 +1,5 @@
-apiVersion: waf-test/v1
-kind: WafTest
+apiVersion: sentinel-test/v1
+kind: SentinelTest
 metadata:
   name: test-config
   description: Valid test configuration

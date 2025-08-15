@@ -77,7 +77,7 @@ func runTests(cmd *cobra.Command, args []string) error {
 	}).Info("Starting WAF tests")
 
 	p := parser.NewParser()
-	var tests []*config.WafTest
+	var tests []*config.SentinelTest
 	var err error
 
 	if isDirectory(path) {
@@ -87,7 +87,7 @@ func runTests(cmd *cobra.Command, args []string) error {
 		if parseErr != nil {
 			return parseErr
 		}
-		tests = []*config.WafTest{test}
+		tests = []*config.SentinelTest{test}
 	}
 
 	if err != nil {
@@ -111,7 +111,7 @@ func validateTests(cmd *cobra.Command, args []string) error {
 	}).Info("Validating WAF test files")
 
 	p := parser.NewParser()
-	var tests []*config.WafTest
+	var tests []*config.SentinelTest
 	var err error
 
 	if isDirectory(path) {
@@ -121,7 +121,7 @@ func validateTests(cmd *cobra.Command, args []string) error {
 		if parseErr != nil {
 			return parseErr
 		}
-		tests = []*config.WafTest{test}
+		tests = []*config.SentinelTest{test}
 	}
 
 	if err != nil {
@@ -135,7 +135,7 @@ func validateTests(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func executeTests(tests []*config.WafTest) error {
+func executeTests(tests []*config.SentinelTest) error {
 	rep := reporter.NewReporter(format, outputFile)
 	start := time.Now()
 	
@@ -180,13 +180,13 @@ func executeTests(tests []*config.WafTest) error {
 	return nil
 }
 
-func executeTestsSequentially(wafTest *config.WafTest, httpExecutor *executor.HTTPExecutor, responseValidator *validator.ResponseValidator, rep *reporter.Reporter) []reporter.TestReport {
+func executeTestsSequentially(sentinelTest *config.SentinelTest, httpExecutor *executor.HTTPExecutor, responseValidator *validator.ResponseValidator, rep *reporter.Reporter) []reporter.TestReport {
 	var reports []reporter.TestReport
 
-	for _, test := range wafTest.Spec.Tests {
+	for _, test := range sentinelTest.Spec.Tests {
 		start := time.Now()
 		
-		response, err := httpExecutor.ExecuteTest(&test, wafTest.Spec.Target.BaseURL)
+		response, err := httpExecutor.ExecuteTest(&test, sentinelTest.Spec.Target.BaseURL)
 		if err != nil {
 			logger.WithFields(logrus.Fields{
 				"test_name": test.Name,
@@ -207,7 +207,7 @@ func executeTestsSequentially(wafTest *config.WafTest, httpExecutor *executor.HT
 	return reports
 }
 
-func executeTestsConcurrently(wafTest *config.WafTest, httpExecutor *executor.HTTPExecutor, responseValidator *validator.ResponseValidator, rep *reporter.Reporter, maxConcurrent int) []reporter.TestReport {
+func executeTestsConcurrently(sentinelTest *config.SentinelTest, httpExecutor *executor.HTTPExecutor, responseValidator *validator.ResponseValidator, rep *reporter.Reporter, maxConcurrent int) []reporter.TestReport {
 	var reports []reporter.TestReport
 	var mu sync.Mutex
 	var wg sync.WaitGroup
@@ -215,7 +215,7 @@ func executeTestsConcurrently(wafTest *config.WafTest, httpExecutor *executor.HT
 	semaphore := make(chan struct{}, maxConcurrent)
 	ctx := context.Background()
 
-	for _, test := range wafTest.Spec.Tests {
+	for _, test := range sentinelTest.Spec.Tests {
 		wg.Add(1)
 		go func(t config.Test) {
 			defer wg.Done()
@@ -225,7 +225,7 @@ func executeTestsConcurrently(wafTest *config.WafTest, httpExecutor *executor.HT
 
 			start := time.Now()
 			
-			response, err := httpExecutor.ExecuteTestWithContext(ctx, &t, wafTest.Spec.Target.BaseURL)
+			response, err := httpExecutor.ExecuteTestWithContext(ctx, &t, sentinelTest.Spec.Target.BaseURL)
 			if err != nil {
 				logger.WithFields(logrus.Fields{
 					"test_name": t.Name,

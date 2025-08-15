@@ -8,19 +8,19 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestWafTestValidation(t *testing.T) {
+func TestSentinelTestValidation(t *testing.T) {
 	validator := validator.New()
 
 	tests := []struct {
-		name    string
-		wafTest WafTest
-		wantErr bool
+		name        string
+		sentinelTest SentinelTest
+		wantErr     bool
 	}{
 		{
 			name: "valid config",
-			wafTest: WafTest{
+			sentinelTest: SentinelTest{
 				APIVersion: "waf-test/v1",
-				Kind:       "WafTest",
+				Kind:       "SentinelTest",
 				Metadata: Metadata{
 					Name:        "test-config",
 					Description: "Test description",
@@ -48,7 +48,7 @@ func TestWafTestValidation(t *testing.T) {
 		},
 		{
 			name: "missing required fields",
-			wafTest: WafTest{
+			sentinelTest: SentinelTest{
 				APIVersion: "",
 				Kind:       "",
 			},
@@ -56,7 +56,7 @@ func TestWafTestValidation(t *testing.T) {
 		},
 		{
 			name: "invalid kind",
-			wafTest: WafTest{
+			sentinelTest: SentinelTest{
 				APIVersion: "waf-test/v1",
 				Kind:       "InvalidKind",
 				Metadata: Metadata{
@@ -84,9 +84,9 @@ func TestWafTestValidation(t *testing.T) {
 		},
 		{
 			name: "invalid URL",
-			wafTest: WafTest{
+			sentinelTest: SentinelTest{
 				APIVersion: "waf-test/v1",
-				Kind:       "WafTest",
+				Kind:       "SentinelTest",
 				Metadata: Metadata{
 					Name: "test",
 				},
@@ -112,9 +112,9 @@ func TestWafTestValidation(t *testing.T) {
 		},
 		{
 			name: "invalid HTTP method",
-			wafTest: WafTest{
+			sentinelTest: SentinelTest{
 				APIVersion: "waf-test/v1",
-				Kind:       "WafTest",
+				Kind:       "SentinelTest",
 				Metadata: Metadata{
 					Name: "test",
 				},
@@ -140,9 +140,9 @@ func TestWafTestValidation(t *testing.T) {
 		},
 		{
 			name: "empty tests array",
-			wafTest: WafTest{
+			sentinelTest: SentinelTest{
 				APIVersion: "waf-test/v1",
-				Kind:       "WafTest",
+				Kind:       "SentinelTest",
 				Metadata: Metadata{
 					Name: "test",
 				},
@@ -157,9 +157,9 @@ func TestWafTestValidation(t *testing.T) {
 		},
 		{
 			name: "empty status codes",
-			wafTest: WafTest{
+			sentinelTest: SentinelTest{
 				APIVersion: "waf-test/v1",
-				Kind:       "WafTest",
+				Kind:       "SentinelTest",
 				Metadata: Metadata{
 					Name: "test",
 				},
@@ -187,18 +187,18 @@ func TestWafTestValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Struct(&tt.wafTest)
+			err := validator.Struct(&tt.sentinelTest)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("WafTest validation = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("SentinelTest validation = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
 func TestYAMLMarshaling(t *testing.T) {
-	wafTest := WafTest{
+	sentinelTest := SentinelTest{
 		APIVersion: "waf-test/v1",
-		Kind:       "WafTest",
+		Kind:       "SentinelTest",
 		Metadata: Metadata{
 			Name:        "test-config",
 			Description: "Test description",
@@ -236,30 +236,30 @@ func TestYAMLMarshaling(t *testing.T) {
 	}
 
 	// Test marshaling
-	data, err := yaml.Marshal(&wafTest)
+	data, err := yaml.Marshal(&sentinelTest)
 	if err != nil {
-		t.Fatalf("Failed to marshal WafTest: %v", err)
+		t.Fatalf("Failed to marshal SentinelTest: %v", err)
 	}
 
 	// Test unmarshaling
-	var unmarshaled WafTest
+	var unmarshaled SentinelTest
 	err = yaml.Unmarshal(data, &unmarshaled)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal WafTest: %v", err)
+		t.Fatalf("Failed to unmarshal SentinelTest: %v", err)
 	}
 
 	// Verify fields
-	if unmarshaled.APIVersion != wafTest.APIVersion {
-		t.Errorf("APIVersion mismatch: got %s, want %s", unmarshaled.APIVersion, wafTest.APIVersion)
+	if unmarshaled.APIVersion != sentinelTest.APIVersion {
+		t.Errorf("APIVersion mismatch: got %s, want %s", unmarshaled.APIVersion, sentinelTest.APIVersion)
 	}
-	if unmarshaled.Kind != wafTest.Kind {
-		t.Errorf("Kind mismatch: got %s, want %s", unmarshaled.Kind, wafTest.Kind)
+	if unmarshaled.Kind != sentinelTest.Kind {
+		t.Errorf("Kind mismatch: got %s, want %s", unmarshaled.Kind, sentinelTest.Kind)
 	}
-	if unmarshaled.Metadata.Name != wafTest.Metadata.Name {
-		t.Errorf("Metadata.Name mismatch: got %s, want %s", unmarshaled.Metadata.Name, wafTest.Metadata.Name)
+	if unmarshaled.Metadata.Name != sentinelTest.Metadata.Name {
+		t.Errorf("Metadata.Name mismatch: got %s, want %s", unmarshaled.Metadata.Name, sentinelTest.Metadata.Name)
 	}
-	if len(unmarshaled.Spec.Tests) != len(wafTest.Spec.Tests) {
-		t.Errorf("Tests length mismatch: got %d, want %d", len(unmarshaled.Spec.Tests), len(wafTest.Spec.Tests))
+	if len(unmarshaled.Spec.Tests) != len(sentinelTest.Spec.Tests) {
+		t.Errorf("Tests length mismatch: got %d, want %d", len(unmarshaled.Spec.Tests), len(sentinelTest.Spec.Tests))
 	}
 }
 
@@ -319,7 +319,7 @@ func TestBodyExpectedValidation(t *testing.T) {
 func TestTimeoutParsing(t *testing.T) {
 	yamlData := `
 apiVersion: waf-test/v1
-kind: WafTest
+kind: SentinelTest
 metadata:
   name: timeout-test
 spec:
@@ -335,14 +335,14 @@ spec:
         status: [200]
 `
 
-	var wafTest WafTest
-	err := yaml.Unmarshal([]byte(yamlData), &wafTest)
+	var sentinelTest SentinelTest
+	err := yaml.Unmarshal([]byte(yamlData), &sentinelTest)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal YAML: %v", err)
 	}
 
 	expectedTimeout := 45 * time.Second
-	if wafTest.Spec.Target.Timeout != expectedTimeout {
-		t.Errorf("Timeout mismatch: got %v, want %v", wafTest.Spec.Target.Timeout, expectedTimeout)
+	if sentinelTest.Spec.Target.Timeout != expectedTimeout {
+		t.Errorf("Timeout mismatch: got %v, want %v", sentinelTest.Spec.Target.Timeout, expectedTimeout)
 	}
 }

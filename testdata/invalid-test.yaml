@@ -1,4 +1,4 @@
-apiVersion: waf-test/v1
+apiVersion: sentinel-test/v1
 kind: InvalidKind
 metadata:
   name: ""

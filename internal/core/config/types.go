@@ -4,9 +4,9 @@ import (
 	"time"
 )
 
-type WafTest struct {
+type SentinelTest struct {
 	APIVersion string   `yaml:"apiVersion" validate:"required"`
-	Kind       string   `yaml:"kind" validate:"required,eq=WafTest"`
+	Kind       string   `yaml:"kind" validate:"required,eq=SentinelTest"`
 	Metadata   Metadata `yaml:"metadata" validate:"required"`
 	Spec       Spec     `yaml:"spec" validate:"required"`
 }

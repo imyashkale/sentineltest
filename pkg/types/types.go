@@ -3,8 +3,8 @@ package types
 
 import "time"
 
-// WafTestConfig represents a complete WAF test configuration
-type WafTestConfig struct {
+// SentinelTestConfig represents a complete Sentinel test configuration
+type SentinelTestConfig struct {
 	APIVersion string   `yaml:"apiVersion" json:"apiVersion"`
 	Kind       string   `yaml:"kind" json:"kind"`
 	Metadata   Metadata `yaml:"metadata" json:"metadata"`
@@ -80,7 +80,7 @@ type SuiteResult struct {
 	Timestamp   time.Time     `json:"timestamp"`
 }
 
-// ClientConfig represents configuration for the WAF testing client
+// ClientConfig represents configuration for the Sentinel testing client
 type ClientConfig struct {
 	Timeout    time.Duration `json:"timeout,omitempty"`
 	OutputFile string        `json:"output_file,omitempty"`

@@ -27,8 +27,8 @@ sentineltest --help
 1. **Create a test configuration** (`test.yaml`):
 
 ```yaml
-apiVersion: waf-test/v1
-kind: WafTest
+apiVersion: sentinel-test/v1
+kind: SentinelTest
 metadata:
   name: sql-injection-test
 spec:
@@ -77,8 +77,8 @@ Success Rate: 100.00%
 ### Basic Structure
 
 ```yaml
-apiVersion: waf-test/v1
-kind: WafTest
+apiVersion: sentinel-test/v1
+kind: SentinelTest
 metadata:
   name: test-name
   description: "Optional description"

@@ -20,7 +20,7 @@ func NewParser() *Parser {
 	}
 }
 
-func (p *Parser) ParseFile(filename string) (*config.WafTest, error) {
+func (p *Parser) ParseFile(filename string) (*config.SentinelTest, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %s: %w", filename, err)
@@ -29,22 +29,22 @@ func (p *Parser) ParseFile(filename string) (*config.WafTest, error) {
 	return p.ParseYAML(data)
 }
 
-func (p *Parser) ParseYAML(data []byte) (*config.WafTest, error) {
-	var wafTest config.WafTest
+func (p *Parser) ParseYAML(data []byte) (*config.SentinelTest, error) {
+	var sentinelTest config.SentinelTest
 	
-	if err := yaml.Unmarshal(data, &wafTest); err != nil {
+	if err := yaml.Unmarshal(data, &sentinelTest); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML: %w", err)
 	}
 
-	if err := p.validator.Struct(&wafTest); err != nil {
+	if err := p.validator.Struct(&sentinelTest); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	return &wafTest, nil
+	return &sentinelTest, nil
 }
 
-func (p *Parser) ParseDirectory(dir string) ([]*config.WafTest, error) {
-	var tests []*config.WafTest
+func (p *Parser) ParseDirectory(dir string) ([]*config.SentinelTest, error) {
+	var tests []*config.SentinelTest
 	
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
